@@ -164,6 +164,19 @@
   footer{background:var(--dark);color:#7e93a1;padding:36px 0;font-size:13px;border-top:1px solid #1e3442}
   .foot-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
 
+  /* Scroll reveal + parallax (subtle, professional) */
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease-out,transform .6s ease-out}
+  .reveal.visible{opacity:1;transform:none}
+  .hero{position:relative;overflow:hidden}
+  .hero .container{position:relative;z-index:1}
+  .deco{position:absolute;border-radius:50%;filter:blur(70px);pointer-events:none;will-change:transform}
+  .deco-1{width:420px;height:420px;background:rgba(0,195,255,.14);top:-120px;right:-100px}
+  .deco-2{width:340px;height:340px;background:rgba(0,152,187,.10);bottom:-140px;left:-80px}
+  @media(prefers-reduced-motion:reduce){
+    .reveal{opacity:1;transform:none;transition:none}
+    html{scroll-behavior:auto}
+  }
+
   @media(max-width:900px){
     .hero h1{font-size:36px}
     .section-title{font-size:30px}
@@ -255,6 +268,8 @@
 <main>
 <!-- HERO -->
 <header class="hero">
+  <div class="deco deco-1" data-parallax="0.18"></div>
+  <div class="deco deco-2" data-parallax="0.10"></div>
   <div class="container">
     <span class="eyebrow">Employer of Record · Colombia</span>
     <h1>Your Employer of Record in Colombia. <span class="accent">We Handle Everything Else.</span></h1>
@@ -534,5 +549,47 @@
   </div>
 </footer>
 
+<script>
+(function(){
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduced) return;
+
+  /* Scroll reveal: progressive enhancement — without JS everything stays visible */
+  var targets = document.querySelectorAll(
+    '.section-label,.section-title,.section-intro,.p-card,.stack-item,.step,.table-card,.savings-banner,.why-item,.quote-card,.guarantee-card,details'
+  );
+  targets.forEach(function(el){ el.classList.add('reveal'); });
+
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (e.isIntersecting){
+        var el = e.target, parent = el.parentElement;
+        var siblings = Array.prototype.filter.call(parent.children, function(c){ return c.classList.contains('reveal'); });
+        var i = siblings.indexOf(el);
+        el.style.transitionDelay = (i > 0 ? Math.min(i, 5) * 70 : 0) + 'ms';
+        el.classList.add('visible');
+        io.unobserve(el);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  targets.forEach(function(el){ io.observe(el); });
+
+  /* Gentle hero parallax */
+  var layers = document.querySelectorAll('[data-parallax]');
+  if (layers.length){
+    var ticking = false;
+    function update(){
+      var y = window.scrollY || 0;
+      layers.forEach(function(el){
+        el.style.transform = 'translateY(' + (y * parseFloat(el.dataset.parallax)) + 'px)';
+      });
+      ticking = false;
+    }
+    window.addEventListener('scroll', function(){
+      if (!ticking){ requestAnimationFrame(update); ticking = true; }
+    }, { passive: true });
+  }
+})();
+</script>
 </body>
 </html>
